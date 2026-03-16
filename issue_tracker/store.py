@@ -55,7 +55,33 @@ class IssueStore:
             if reader.fieldnames is None or "title" not in reader.fieldnames:
                 raise ValueError("CSV must have a 'title' column")
             rows = list(reader)
-        return [self.add(row["title"]) for row in rows]
+
+        # Validate all rows before persisting anything
+        titles = []
+        for row in rows:
+            cleaned = row["title"].strip()
+            if not cleaned:
+                raise ValueError("title must not be empty")
+            titles.append(cleaned)
+
+        # All rows valid — load once, add all, save once
+        if not titles:
+            return []
+        payload = self._load()
+        issues = []
+        for title in titles:
+            issue = {
+                "id": payload["next_id"],
+                "title": title,
+                "status": "open",
+                "created_at": _now(),
+                "closed_at": None,
+            }
+            payload["next_id"] += 1
+            payload["issues"].append(issue)
+            issues.append(issue)
+        self._save(payload)
+        return issues
 
     # MCC-LIVE-E2E: store method anchor
 
