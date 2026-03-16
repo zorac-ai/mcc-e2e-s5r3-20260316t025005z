@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -47,6 +48,14 @@ class IssueStore:
         issue["closed_at"] = _now()
         self._save(payload)
         return issue
+
+    def import_csv(self, csv_path: Path) -> list[dict[str, Any]]:
+        with csv_path.open(newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            if reader.fieldnames is None or "title" not in reader.fieldnames:
+                raise ValueError("CSV must have a 'title' column")
+            rows = list(reader)
+        return [self.add(row["title"]) for row in rows]
 
     # MCC-LIVE-E2E: store method anchor
 

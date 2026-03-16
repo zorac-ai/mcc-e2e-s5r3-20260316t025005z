@@ -25,6 +25,9 @@ def build_parser() -> argparse.ArgumentParser:
     close_parser = subparsers.add_parser("close", help="Close an issue")
     close_parser.add_argument("issue_id", type=int)
 
+    import_parser = subparsers.add_parser("import", help="Import issues from a CSV file")
+    import_parser.add_argument("csv_file")
+
     # MCC-LIVE-E2E: parser anchor
 
     return parser
@@ -41,6 +44,8 @@ def main(argv: list[str] | None = None) -> int:
         result = store.list(status=args.status)
     elif args.command == "close":
         result = store.close(args.issue_id)
+    elif args.command == "import":
+        result = store.import_csv(Path(args.csv_file))
     # MCC-LIVE-E2E: command anchor
     else:
         parser.error(f"unknown command: {args.command}")
